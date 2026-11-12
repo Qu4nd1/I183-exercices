@@ -1,37 +1,22 @@
 import express from "express";
-import { connectToDatabase } from "../utils/dbUtils.mjs";
-
+import { login } from "../auth.mjs";
 
 const router = express.Router();
 
-// Middleware pour la connexion à la base de données
-const connectToDatabaseMiddleware = async (req, res, next) => {
-  try {
-    req.dbConnection = await connectToDatabase();
-    next();
-  } catch (error) {
-    console.error("Error connecting to the database:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-
-
-router.post('/', connectToDatabaseMiddleware, async (req, res) => {
+router.post("/", async (req, res) => {
   const { username, password } = req.body;
 
-  // INTENTIONALLY VULNERABLE (A05 Injection): the query is built by string concatenation.
-  // Exercise: exploit it, then fix it with a prepared statement (? placeholders).
-  const queryString = `SELECT * FROM t_users WHERE useName = '${username}' AND usePassword = '${password}'`; 
-
   try {
-    const [rows] = await req.dbConnection.query(queryString, [username, password]);
-    if (rows.length > 0) {
-      res.status(200).json({ message: "Authentication successful" });
-    } else {
-      res.status(401).json({ error: "Invalid username or password" });
+    await login(username, password);
+    res.status(200).json({ message: "Authentication successful" });
+  } catch (err) {
+    if (err.message === "Invalid input") {
+      return res.status(400).json({ error: "Invalid input" });
     }
-  } catch (error) {
-    console.error("Error authenticating user:", error);
+    if (err.message === "Invalid credentials") {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+    console.error("Error authenticating user:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });

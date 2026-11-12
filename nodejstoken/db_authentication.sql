@@ -14,12 +14,9 @@ DROP TABLE IF EXISTS `t_users`;
 CREATE TABLE `t_users` (
   `idUser` int NOT NULL,
   `useName` varchar(255) NOT NULL,
-  `usePassword` varchar(255) NOT NULL
+  `usePassword` binary(32) NOT NULL,
+  `useSalt` binary(16) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-INSERT INTO `t_users` (`idUser`, `useName`, `usePassword`) VALUES
-(1, 'john', '1234');
-
 
 ALTER TABLE `t_users`
   ADD PRIMARY KEY (`idUser`),
@@ -27,8 +24,11 @@ ALTER TABLE `t_users`
 
 
 ALTER TABLE `t_users`
-  MODIFY `idUser` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `idUser` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 COMMIT;
+
+GRANT insert, select ON `db_authentication`.`t_users` TO 'db_user'@'%';
+
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
