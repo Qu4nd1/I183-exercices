@@ -7,8 +7,8 @@ router.post("/", async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    await login(username, password);
-    res.status(200).json({ message: "Authentication successful" });
+    const token = await login(username, password);
+    res.status(200).json({ message: "Authentication successful", token });
   } catch (err) {
     if (err.message === "Invalid input") {
       return res.status(400).json({ error: "Invalid input" });

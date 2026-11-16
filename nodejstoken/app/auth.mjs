@@ -1,6 +1,7 @@
 import { hash } from "argon2";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { pool } from "./db.mjs";
+import { signToken, verifyToken } from "./authMiddleware.mjs";
 
 const pepperHex = process.env.PEPPER;
 if (!pepperHex) {
@@ -50,7 +51,8 @@ export async function register(username, password) {
 export async function login(username, password) {
   validateInput(username, password);
 
-  const sql = "SELECT usePassword, useSalt FROM t_users WHERE useName = ?";
+  const sql =
+    "SELECT idUser, useName, usePassword, useSalt FROM t_users WHERE useName = ?";
   const [rows] = await pool.execute(sql, [username]);
 
   if (rows.length === 0) {
@@ -67,7 +69,7 @@ export async function login(username, password) {
   // TODO: compare
   if (!timingSafeEqual(candidate, row.usePassword)) {
     throw new Error("Invalid credentials");
-  } else {
-    return true;
   }
+
+  return signToken({ idUser: row.idUser, useName: row.useName });
 }
